@@ -23,6 +23,13 @@ enum TaskStatus {
 #[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct TaskId(u32);
 
+impl TaskId {
+    #[must_use]
+    pub const fn value(&self) -> u32 {
+        self.0
+    }
+}
+
 impl TryFrom<u32> for TaskId {
     type Error = TaskError;
 
@@ -57,7 +64,15 @@ pub struct DbState {
 }
 impl DbState {
     #[must_use]
-    pub const fn next_id(&self) -> TaskId {
+    const fn next_id(&self) -> TaskId {
         TaskId(self.last_id.0.saturating_add(1))
+    }
+
+    pub fn add_task(&mut self, task: Task) -> TaskId {
+        let id = task.id;
+        // let task = Task::new(self.next_id(), description);
+        self.tasks.insert(id, task);
+        self.last_id = id;
+        id
     }
 }

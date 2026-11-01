@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{fs::OpenOptions, io::BufReader};
 
-use tasque::model::DbState;
+use tasque::model::{DbState, Task};
 
 #[derive(Parser)]
 struct Cli {
@@ -48,12 +48,16 @@ fn main() {
 
     let reader = BufReader::new(db);
 
-    let db_state: DbState = serde_json::from_reader(reader).unwrap_or_default();
+    let mut db_state: DbState = serde_json::from_reader(reader).unwrap_or_default();
 
     println!("DB state: {db_state:?}");
 
     match cli.command {
-        Commands::Add { description } => println!("New task: {description}"),
+        Commands::Add { description } => {
+            let task = Task::new(&db_state, &description);
+            let id = db_state.add_task(task);
+            println!("Task added successfully: (ID: {})", id.value());
+        }
         Commands::Update {
             id,
             new_description,
@@ -68,4 +72,5 @@ fn main() {
             ListOption::InProgress => println!("listing all ongoing tasks"),
         },
     }
+    println!("DB state: {db_state:?}");
 }
