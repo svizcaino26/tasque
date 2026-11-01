@@ -19,7 +19,10 @@ enum Commands {
     /// Set task status to done
     MarkDone { id: u32 },
     /// List tasks (see option)
-    List { option: ListOption },
+    List {
+        #[arg(value_enum, default_value = "all")]
+        option: ListOption,
+    },
 }
 
 #[derive(ValueEnum, Clone)]
@@ -32,7 +35,7 @@ enum ListOption {
 
 fn main() {
     let cli = Cli::parse();
-    match &cli.command {
+    match cli.command {
         Commands::Add { description } => println!("New task: {description}"),
         Commands::Update {
             id,
