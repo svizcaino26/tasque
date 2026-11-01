@@ -1,5 +1,8 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use std::{fs::OpenOptions, io::BufReader};
+use std::{
+    fs::OpenOptions,
+    io::{BufReader, BufWriter, Write},
+};
 
 use tasque::model::{DbState, Task};
 
@@ -46,7 +49,8 @@ fn main() {
         .open("db.json")
         .unwrap();
 
-    let reader = BufReader::new(db);
+    let reader = BufReader::new(&db);
+    let mut writer = BufWriter::new(&db);
 
     let mut db_state: DbState = serde_json::from_reader(reader).unwrap_or_default();
 
@@ -56,6 +60,7 @@ fn main() {
         Commands::Add { description } => {
             let task = Task::new(&db_state, &description);
             let id = db_state.add_task(task);
+            serde_json::to_writer(&mut writer, &db_state).unwrap();
             println!("Task added successfully: (ID: {})", id.value());
         }
         Commands::Update {
