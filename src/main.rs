@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 struct Cli {
@@ -9,15 +9,37 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Add new task
-    Add { description: String },
+    Add {
+        description: String,
+    },
     /// Update task description
-    Update { id: u32, new_description: String },
+    Update {
+        id: u32,
+        new_description: String,
+    },
     /// Delete task
-    Delete { id: u32 },
+    Delete {
+        id: u32,
+    },
     /// Update task status to in-progress
-    MarkInProgress { id: u32 },
+    MarkInProgress {
+        id: u32,
+    },
     /// Set task status to done
-    MarkDone { id: u32 },
+    MarkDone {
+        id: u32,
+    },
+    List {
+        command: List,
+    },
+}
+
+#[derive(ValueEnum, Clone)]
+enum List {
+    All,
+    Done,
+    Pending,
+    InProgress,
 }
 
 fn main() {
@@ -31,5 +53,6 @@ fn main() {
         Commands::Delete { id } => (),
         Commands::MarkInProgress { id } => (),
         Commands::MarkDone { id } => (),
+        Commands::List { command } => (),
     }
 }
