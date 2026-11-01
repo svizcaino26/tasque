@@ -19,7 +19,7 @@ enum TaskStatus {
     Done,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct TaskId(u32);
 
 impl TryFrom<u32> for TaskId {
@@ -36,9 +36,9 @@ impl TryFrom<u32> for TaskId {
 
 impl Task {
     #[must_use]
-    pub fn new(description: &str) -> Self {
+    pub fn new(db_state: &DbState, description: &str) -> Self {
         let now = Local::now();
-        let id = TaskId(1);
+        let id = DbState::next_id(db_state);
         Self {
             id,
             description: description.into(),
@@ -46,5 +46,18 @@ impl Task {
             created_at: now,
             updated_at: now,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct DbState {
+    tasks: HashMap<TaskId, Task>,
+    next_id: TaskId,
+}
+
+impl DbState {
+    #[must_use]
+    pub const fn next_id(&self) -> TaskId {
+        self.next_id
     }
 }
