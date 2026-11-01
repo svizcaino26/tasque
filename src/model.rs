@@ -1,8 +1,9 @@
 use crate::error::TaskError;
 use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Task {
     id: TaskId,
     description: String,
@@ -11,7 +12,7 @@ pub struct Task {
     updated_at: DateTime<Local>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Deserialize, Serialize)]
 enum TaskStatus {
     #[default]
     Pending,
@@ -19,7 +20,7 @@ enum TaskStatus {
     Done,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct TaskId(u32);
 
 impl TryFrom<u32> for TaskId {
@@ -49,15 +50,14 @@ impl Task {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct DbState {
     tasks: HashMap<TaskId, Task>,
-    next_id: TaskId,
+    last_id: TaskId,
 }
-
 impl DbState {
     #[must_use]
     pub const fn next_id(&self) -> TaskId {
-        self.next_id
+        TaskId(self.last_id.0.saturating_add(1))
     }
 }

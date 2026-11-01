@@ -1,4 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
+use std::{fs::OpenOptions, io::BufReader};
+
+use tasque::model::DbState;
 
 #[derive(Parser)]
 struct Cli {
@@ -33,8 +36,22 @@ enum ListOption {
     InProgress,
 }
 
+#[allow(clippy::unwrap_used)]
 fn main() {
     let cli = Cli::parse();
+    let db = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open("db.json")
+        .unwrap();
+
+    let reader = BufReader::new(db);
+
+    let db_state: DbState = serde_json::from_reader(reader).unwrap_or_default();
+
+    println!("DB state: {db_state:?}");
+
     match cli.command {
         Commands::Add { description } => println!("New task: {description}"),
         Commands::Update {
