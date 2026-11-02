@@ -144,9 +144,9 @@ impl DbState {
         id: TaskId,
         new_status: TaskStatus,
     ) -> Result<(), TaskError> {
-        self.get_task_by_id(id).map_or_else(
+        self.tasks.get_mut(&id).map_or_else(
             || Err(TaskError::TaskNotFound(id.value())),
-            |mut task| {
+            |task| {
                 task.set_status(new_status);
                 Ok(())
             },
