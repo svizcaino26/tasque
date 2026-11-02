@@ -33,7 +33,13 @@ impl std::fmt::Display for TaskStatus {
 impl std::fmt::Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = self.status.to_string();
-        write!(f, "[{}]-[{}]-{}", self.id.value(), self.description, status)
+        write!(
+            f,
+            "[{}]-[{}]\n{}\n",
+            self.id.value(),
+            status,
+            self.description
+        )
     }
 }
 
@@ -107,6 +113,22 @@ impl DbState {
         self.tasks
             .values()
             .filter(|task| *task.status() == TaskStatus::Done)
+            .for_each(|task| println!("{task}"));
+    }
+
+    pub fn list_in_progress(&self) {
+        println!("Listing in-progress tasks");
+        self.tasks
+            .values()
+            .filter(|task| *task.status() == TaskStatus::InProgress)
+            .for_each(|task| println!("{task}"));
+    }
+
+    pub fn list_pending(&self) {
+        println!("Listing pending tasks");
+        self.tasks
+            .values()
+            .filter(|task| *task.status() == TaskStatus::Pending)
             .for_each(|task| println!("{task}"));
     }
 }

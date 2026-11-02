@@ -75,8 +75,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::List { option } => match option {
             ListOption::All => db_state.list_all(),
             ListOption::Done => db_state.list_done(),
-            ListOption::Pending => println!("listing all pending tasks"),
-            ListOption::InProgress => println!("listing all ongoing tasks"),
+            ListOption::Pending => db_state.list_pending(),
+            ListOption::InProgress => db_state.list_in_progress(),
         },
     }
     // println!("DB state: {db_state:?}");
