@@ -1,4 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
+use std::{fs::OpenOptions, io::Seek};
+
+use tasque::model::{display_tasks, DbState, Task, TaskStatus};
 
 #[derive(Parser)]
 struct Cli {
@@ -33,10 +36,32 @@ enum ListOption {
     InProgress,
 }
 
-fn main() {
+#[allow(clippy::unwrap_used)]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+    let mut db = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open("db.json")?;
+
+    let mut db_state: DbState = if db.metadata()?.len() == 0 {
+        DbState::default()
+    } else {
+        serde_json::from_reader(&db)?
+    };
+
+    // println!("DB state: {db_state:?}");
+
     match cli.command {
-        Commands::Add { description } => println!("New task: {description}"),
+        Commands::Add { description } => {
+            let task = Task::new(&db_state, &description);
+            let id = db_state.add_task(task);
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task added successfully: (ID: {})", id.value());
+        }
         Commands::Update {
             id,
             new_description,
@@ -45,10 +70,24 @@ fn main() {
         Commands::MarkInProgress { id } => (),
         Commands::MarkDone { id } => (),
         Commands::List { option } => match option {
-            ListOption::All => println!("listing all tasks"),
-            ListOption::Done => println!("listing all done tasks"),
-            ListOption::Pending => println!("listing all pending tasks"),
-            ListOption::InProgress => println!("listing all ongoing tasks"),
+            ListOption::All => {
+                let tasks = db_state.get_all_tasks();
+                display_tasks(&tasks);
+            }
+            ListOption::Done => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::Done);
+                display_tasks(&tasks);
+            }
+            ListOption::Pending => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::Pending);
+                display_tasks(&tasks);
+            }
+            ListOption::InProgress => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::InProgress);
+                display_tasks(&tasks);
+            }
         },
     }
+    // println!("DB state: {db_state:?}");
+    Ok(())
 }
