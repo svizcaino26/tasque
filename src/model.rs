@@ -59,7 +59,7 @@ impl TryFrom<u32> for TaskId {
         if (1..=u32::MAX).contains(&value) {
             Ok(Self(value))
         } else {
-            Err(TaskError::InvalidTaskId)
+            Err(TaskError::InvalidTaskId(value))
         }
     }
 }
@@ -77,9 +77,14 @@ impl Task {
             updated_at: now,
         }
     }
+
     #[must_use]
     const fn status(&self) -> &TaskStatus {
         &self.status
+    }
+
+    fn set_status(&mut self, status: TaskStatus) {
+        self.status = status;
     }
 }
 
@@ -123,6 +128,29 @@ impl DbState {
         tasks.sort_by_key(|task| task.id.value());
 
         tasks
+    }
+
+    fn get_task_by_id(&mut self, id: TaskId) -> Option<Task> {
+        self.tasks.get_mut(&id).cloned()
+    }
+
+    /// Updates the status of a [`Task`]
+    ///
+    /// # Errors
+    ///
+    /// Resturns [`TaskError::TaskNotFound`] if the given ID is not in the database.
+    pub fn update_task_status(
+        &mut self,
+        id: TaskId,
+        new_status: TaskStatus,
+    ) -> Result<(), TaskError> {
+        self.get_task_by_id(id).map_or_else(
+            || Err(TaskError::TaskNotFound(id.value())),
+            |mut task| {
+                task.set_status(new_status);
+                Ok(())
+            },
+        )
     }
 }
 
