@@ -65,7 +65,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Update {
             id,
             new_description,
-        } => (),
+        } => {
+            let id = TaskId::try_from(id)?;
+            db_state.update_description(id, new_description)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task updated successfully");
+        }
         Commands::Delete { id } => (),
         Commands::MarkInProgress { id } => {
             let id = TaskId::try_from(id)?;

@@ -87,6 +87,11 @@ impl Task {
         self.status = status;
         self.updated_at = Local::now();
     }
+
+    fn set_description(&mut self, new_description: impl Into<String>) {
+        self.description = new_description.into();
+        self.updated_at = Local::now();
+    }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
@@ -145,6 +150,25 @@ impl DbState {
             || Err(TaskError::TaskNotFound(id.value())),
             |task| {
                 task.set_status(new_status);
+                Ok(())
+            },
+        )
+    }
+
+    /// Updates the [`Task`] description
+    ///
+    /// # Errors
+    ///
+    /// Resturns [`TaskError::TaskNotFound`] if the given ID is not in the database.
+    pub fn update_description(
+        &mut self,
+        id: TaskId,
+        new_description: impl Into<String>,
+    ) -> Result<(), TaskError> {
+        self.tasks.get_mut(&id).map_or_else(
+            || Err(TaskError::TaskNotFound(id.value())),
+            |task| {
+                task.set_description(new_description);
                 Ok(())
             },
         )
