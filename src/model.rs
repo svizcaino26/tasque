@@ -102,35 +102,6 @@ impl DbState {
         id
     }
 
-    pub fn list_all(&self) {
-        println!("Listing all tasks");
-        self.tasks.values().for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_done(&self) {
-        println!("Listing done tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::Done)
-            .for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_in_progress(&self) {
-        println!("Listing in-progress tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::InProgress)
-            .for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_pending(&self) {
-        println!("Listing pending tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::Pending)
-            .for_each(|task| println!("{task}"));
-    }
-
     #[must_use]
     pub fn get_tasks_by_status(&self, status: TaskStatus) -> Vec<Task> {
         let mut tasks: Vec<Task> = self
