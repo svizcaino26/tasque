@@ -51,8 +51,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::from_reader(&db)?
     };
 
-    // println!("DB state: {db_state:?}");
-
     match cli.command {
         Commands::Add { description } => {
             let task = Task::new(&db_state, &description);
@@ -73,7 +71,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_writer(&db, &db_state)?;
             println!("Task updated successfully");
         }
-        Commands::Delete { id } => (),
+        Commands::Delete { id } => {
+            let id = TaskId::try_from(id)?;
+            db_state.delete_task(id)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task successfully deleted");
+        }
         Commands::MarkInProgress { id } => {
             let id = TaskId::try_from(id)?;
             db_state.update_task_status(id, TaskStatus::InProgress)?;
@@ -109,6 +114,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
     }
-    // println!("DB state: {db_state:?}");
     Ok(())
 }
