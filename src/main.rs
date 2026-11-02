@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{
     fs::OpenOptions,
-    io::{BufReader, BufWriter, Write},
+    io::{BufReader, Seek},
 };
 
 use tasque::model::{DbState, Task};
@@ -40,19 +40,19 @@ enum ListOption {
 }
 
 #[allow(clippy::unwrap_used)]
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let db = OpenOptions::new()
+    let mut db = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
-        .open("db.json")
-        .unwrap();
+        .open("db.json")?;
 
-    let reader = BufReader::new(&db);
-    let mut writer = BufWriter::new(&db);
-
-    let mut db_state: DbState = serde_json::from_reader(reader).unwrap_or_default();
+    let mut db_state: DbState = if db.metadata()?.len() == 0 {
+        DbState::default()
+    } else {
+        serde_json::from_reader(&db)?
+    };
 
     println!("DB state: {db_state:?}");
 
@@ -60,7 +60,9 @@ fn main() {
         Commands::Add { description } => {
             let task = Task::new(&db_state, &description);
             let id = db_state.add_task(task);
-            serde_json::to_writer(&mut writer, &db_state).unwrap();
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
             println!("Task added successfully: (ID: {})", id.value());
         }
         Commands::Update {
@@ -78,4 +80,5 @@ fn main() {
         },
     }
     println!("DB state: {db_state:?}");
+    Ok(())
 }
