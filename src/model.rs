@@ -12,7 +12,7 @@ pub struct Task {
     updated_at: DateTime<Local>,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize)]
+#[derive(Default, Debug, Deserialize, Serialize, PartialEq, Eq)]
 enum TaskStatus {
     #[default]
     Pending,
@@ -72,6 +72,10 @@ impl Task {
             updated_at: now,
         }
     }
+    #[must_use]
+    pub const fn status(&self) -> &TaskStatus {
+        &self.status
+    }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
@@ -96,5 +100,13 @@ impl DbState {
     pub fn list_all(&self) {
         println!("Listing all tasks");
         self.tasks.values().for_each(|task| println!("{task}"));
+    }
+
+    pub fn list_done(&self) {
+        println!("Listing done tasks");
+        self.tasks
+            .values()
+            .filter(|task| *task.status() == TaskStatus::Done)
+            .for_each(|task| println!("{task}"));
     }
 }

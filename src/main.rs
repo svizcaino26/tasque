@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::from_reader(&db)?
     };
 
-    println!("DB state: {db_state:?}");
+    // println!("DB state: {db_state:?}");
 
     match cli.command {
         Commands::Add { description } => {
@@ -73,12 +73,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::MarkInProgress { id } => (),
         Commands::MarkDone { id } => (),
         Commands::List { option } => match option {
-            ListOption::All => println!("listing all tasks"),
-            ListOption::Done => println!("listing all done tasks"),
+            ListOption::All => db_state.list_all(),
+            ListOption::Done => db_state.list_done(),
             ListOption::Pending => println!("listing all pending tasks"),
             ListOption::InProgress => println!("listing all ongoing tasks"),
         },
     }
-    println!("DB state: {db_state:?}");
+    // println!("DB state: {db_state:?}");
     Ok(())
 }
