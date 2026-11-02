@@ -186,9 +186,3 @@ impl DbState {
             .ok_or_else(|| TaskError::TaskNotFound(id.value()))
     }
 }
-
-pub fn display_tasks(tasks: &[Task]) {
-    for task in tasks {
-        println!("{task}");
-    }
-}
