@@ -1,6 +1,6 @@
-use std::fs::{File, OpenOptions};
-
 use crate::model::DbState;
+use std::fs::{File, OpenOptions};
+use std::io::Seek;
 
 pub struct JsonFileDatabase {
     data: File,
@@ -35,5 +35,13 @@ impl JsonFileDatabase {
             serde_json::from_reader(&self.data)?
         };
         Ok(db_state)
+    }
+
+    /// # Errors
+    pub fn save(&mut self, db_state: &DbState) -> Result<(), std::io::Error> {
+        self.data.set_len(0)?;
+        self.data.rewind()?;
+        serde_json::to_writer(&self.data, &db_state)?;
+        Ok(())
     }
 }
