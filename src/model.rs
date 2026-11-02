@@ -173,6 +173,18 @@ impl DbState {
             },
         )
     }
+
+    /// Deletes a [`Task`]
+    ///
+    /// # Errors
+    ///
+    /// Resturns [`TaskError::TaskNotFound`] if the given ID is not in the database.
+    pub fn delete_task(&mut self, id: TaskId) -> Result<(), TaskError> {
+        self.tasks
+            .remove(&id)
+            .map(|_| ())
+            .ok_or_else(|| TaskError::TaskNotFound(id.value()))
+    }
 }
 
 pub fn display_tasks(tasks: &[Task]) {
