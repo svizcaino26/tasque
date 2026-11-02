@@ -75,7 +75,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_writer(&db, &db_state)?;
             println!("Task updated successfully");
         }
-        Commands::MarkDone { id } => (),
+        Commands::MarkDone { id } => {
+            let id = TaskId::try_from(id)?;
+            db_state.update_task_status(id, TaskStatus::Done)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task updated successfully");
+        }
         Commands::List { option } => match option {
             ListOption::All => {
                 let tasks = db_state.get_all_tasks();
