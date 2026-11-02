@@ -85,6 +85,7 @@ impl Task {
 
     fn set_status(&mut self, status: TaskStatus) {
         self.status = status;
+        self.updated_at = Local::now();
     }
 }
 
