@@ -130,10 +130,6 @@ impl DbState {
         tasks
     }
 
-    fn get_task_by_id(&mut self, id: TaskId) -> Option<Task> {
-        self.tasks.get_mut(&id).cloned()
-    }
-
     /// Updates the status of a [`Task`]
     ///
     /// # Errors
