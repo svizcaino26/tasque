@@ -1,8 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use std::{
-    fs::OpenOptions,
-    io::{BufReader, Seek},
-};
+use std::{fs::OpenOptions, io::Seek};
 
 use tasque::model::{DbState, Task};
 

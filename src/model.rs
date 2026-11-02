@@ -79,7 +79,7 @@ impl Task {
         }
     }
     #[must_use]
-    pub const fn status(&self) -> &TaskStatus {
+    const fn status(&self) -> &TaskStatus {
         &self.status
     }
 }
