@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{fs::OpenOptions, io::Seek};
 
-use tasque::model::{DbState, Task};
+use tasque::model::{display_tasks, DbState, Task, TaskStatus};
 
 #[derive(Parser)]
 struct Cli {
@@ -70,10 +70,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::MarkInProgress { id } => (),
         Commands::MarkDone { id } => (),
         Commands::List { option } => match option {
-            ListOption::All => db_state.list_all(),
-            ListOption::Done => db_state.list_done(),
-            ListOption::Pending => db_state.list_pending(),
-            ListOption::InProgress => db_state.list_in_progress(),
+            ListOption::All => {
+                let tasks = db_state.get_all_tasks();
+                display_tasks(&tasks);
+            }
+            ListOption::Done => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::Done);
+                display_tasks(&tasks);
+            }
+            ListOption::Pending => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::Pending);
+                display_tasks(&tasks);
+            }
+            ListOption::InProgress => {
+                let tasks = db_state.get_tasks_by_status(TaskStatus::InProgress);
+                display_tasks(&tasks);
+            }
         },
     }
     // println!("DB state: {db_state:?}");

@@ -3,7 +3,7 @@ use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Task {
     id: TaskId,
     description: String,
@@ -12,8 +12,8 @@ pub struct Task {
     updated_at: DateTime<Local>,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize, PartialEq, Eq)]
-enum TaskStatus {
+#[derive(Default, Debug, Deserialize, Serialize, PartialEq, Eq, Clone, Copy)]
+pub enum TaskStatus {
     #[default]
     Pending,
     InProgress,
@@ -32,12 +32,11 @@ impl std::fmt::Display for TaskStatus {
 
 impl std::fmt::Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let status = self.status.to_string();
         write!(
             f,
-            "[{}]-[{}]\n{}\n",
+            "[{}]-[{}]\n<{}>\n",
             self.id.value(),
-            status,
+            self.status,
             self.description
         )
     }
@@ -130,5 +129,34 @@ impl DbState {
             .values()
             .filter(|task| *task.status() == TaskStatus::Pending)
             .for_each(|task| println!("{task}"));
+    }
+
+    #[must_use]
+    pub fn get_tasks_by_status(&self, status: TaskStatus) -> Vec<Task> {
+        let mut tasks: Vec<Task> = self
+            .tasks
+            .values()
+            .filter(|task| *task.status() == status)
+            .cloned()
+            .collect();
+
+        tasks.sort_by_key(|task| task.id.value());
+
+        tasks
+    }
+
+    #[must_use]
+    pub fn get_all_tasks(&self) -> Vec<Task> {
+        let mut tasks: Vec<Task> = self.tasks.values().cloned().collect();
+
+        tasks.sort_by_key(|task| task.id.value());
+
+        tasks
+    }
+}
+
+pub fn display_tasks(tasks: &[Task]) {
+    for task in tasks {
+        println!("{task}");
     }
 }
