@@ -20,6 +20,23 @@ enum TaskStatus {
     Done,
 }
 
+impl std::fmt::Display for TaskStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending => write!(f, "PENDING"),
+            Self::InProgress => write!(f, "IN PROGRESS"),
+            Self::Done => write!(f, "DONE"),
+        }
+    }
+}
+
+impl std::fmt::Display for Task {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let status = self.status.to_string();
+        write!(f, "[{}]-[{}]-{}", self.id.value(), self.description, status)
+    }
+}
+
 #[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct TaskId(u32);
 
@@ -74,5 +91,10 @@ impl DbState {
         self.tasks.insert(id, task);
         self.last_id = id;
         id
+    }
+
+    pub fn list_all(&self) {
+        println!("Listing all tasks");
+        self.tasks.values().for_each(|task| println!("{task}"));
     }
 }
