@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{fs::OpenOptions, io::Seek};
 
-use tasque::model::{display_tasks, DbState, Task, TaskStatus};
+use tasque::model::{display_tasks, DbState, Task, TaskId, TaskStatus};
 
 #[derive(Parser)]
 struct Cli {
@@ -65,10 +65,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Update {
             id,
             new_description,
-        } => (),
+        } => {
+            let id = TaskId::try_from(id)?;
+            db_state.update_description(id, new_description)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task updated successfully");
+        }
         Commands::Delete { id } => (),
-        Commands::MarkInProgress { id } => (),
-        Commands::MarkDone { id } => (),
+        Commands::MarkInProgress { id } => {
+            let id = TaskId::try_from(id)?;
+            db_state.update_task_status(id, TaskStatus::InProgress)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task updated successfully");
+        }
+        Commands::MarkDone { id } => {
+            let id = TaskId::try_from(id)?;
+            db_state.update_task_status(id, TaskStatus::Done)?;
+            db.set_len(0)?;
+            db.rewind()?;
+            serde_json::to_writer(&db, &db_state)?;
+            println!("Task updated successfully");
+        }
         Commands::List { option } => match option {
             ListOption::All => {
                 let tasks = db_state.get_all_tasks();

@@ -59,7 +59,7 @@ impl TryFrom<u32> for TaskId {
         if (1..=u32::MAX).contains(&value) {
             Ok(Self(value))
         } else {
-            Err(TaskError::InvalidTaskId)
+            Err(TaskError::InvalidTaskId(value))
         }
     }
 }
@@ -77,9 +77,20 @@ impl Task {
             updated_at: now,
         }
     }
+
     #[must_use]
     const fn status(&self) -> &TaskStatus {
         &self.status
+    }
+
+    fn set_status(&mut self, status: TaskStatus) {
+        self.status = status;
+        self.updated_at = Local::now();
+    }
+
+    fn set_description(&mut self, new_description: impl Into<String>) {
+        self.description = new_description.into();
+        self.updated_at = Local::now();
     }
 }
 
@@ -100,35 +111,6 @@ impl DbState {
         self.tasks.insert(id, task);
         self.last_id = id;
         id
-    }
-
-    pub fn list_all(&self) {
-        println!("Listing all tasks");
-        self.tasks.values().for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_done(&self) {
-        println!("Listing done tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::Done)
-            .for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_in_progress(&self) {
-        println!("Listing in-progress tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::InProgress)
-            .for_each(|task| println!("{task}"));
-    }
-
-    pub fn list_pending(&self) {
-        println!("Listing pending tasks");
-        self.tasks
-            .values()
-            .filter(|task| *task.status() == TaskStatus::Pending)
-            .for_each(|task| println!("{task}"));
     }
 
     #[must_use]
@@ -152,6 +134,44 @@ impl DbState {
         tasks.sort_by_key(|task| task.id.value());
 
         tasks
+    }
+
+    /// Updates the status of a [`Task`]
+    ///
+    /// # Errors
+    ///
+    /// Resturns [`TaskError::TaskNotFound`] if the given ID is not in the database.
+    pub fn update_task_status(
+        &mut self,
+        id: TaskId,
+        new_status: TaskStatus,
+    ) -> Result<(), TaskError> {
+        self.tasks.get_mut(&id).map_or_else(
+            || Err(TaskError::TaskNotFound(id.value())),
+            |task| {
+                task.set_status(new_status);
+                Ok(())
+            },
+        )
+    }
+
+    /// Updates the [`Task`] description
+    ///
+    /// # Errors
+    ///
+    /// Resturns [`TaskError::TaskNotFound`] if the given ID is not in the database.
+    pub fn update_description(
+        &mut self,
+        id: TaskId,
+        new_description: impl Into<String>,
+    ) -> Result<(), TaskError> {
+        self.tasks.get_mut(&id).map_or_else(
+            || Err(TaskError::TaskNotFound(id.value())),
+            |task| {
+                task.set_description(new_description);
+                Ok(())
+            },
+        )
     }
 }
 
