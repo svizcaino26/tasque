@@ -2,7 +2,8 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::{
     db::JsonFileDatabase,
-    model::{display_tasks, DbState, Task, TaskId, TaskStatus},
+    display_tasks,
+    model::{DbState, Task, TaskId, TaskStatus},
 };
 
 #[derive(Parser)]
@@ -47,7 +48,7 @@ impl Cli {
     ) -> Result<(), Box<dyn std::error::Error>> {
         match self.command {
             Commands::Add { description } => {
-                let task = Task::new(&db_state, &description);
+                let task = Task::new(db_state, &description);
                 let id = db_state.add_task(task);
                 db.save(db_state)?;
                 println!("Task added successfully: (ID: {})", id.value());

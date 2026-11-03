@@ -79,7 +79,7 @@ impl Task {
     }
 
     #[must_use]
-    const fn status(&self) -> &TaskStatus {
+    pub const fn status(&self) -> &TaskStatus {
         &self.status
     }
 
@@ -91,6 +91,26 @@ impl Task {
     fn set_description(&mut self, new_description: impl Into<String>) {
         self.description = new_description.into();
         self.updated_at = Local::now();
+    }
+
+    #[must_use]
+    pub const fn id(&self) -> TaskId {
+        self.id
+    }
+
+    #[must_use]
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
+    #[must_use]
+    pub const fn created(&self) -> DateTime<Local> {
+        self.created_at
+    }
+
+    #[must_use]
+    pub const fn updated(&self) -> DateTime<Local> {
+        self.updated_at
     }
 }
 
@@ -184,11 +204,5 @@ impl DbState {
             .remove(&id)
             .map(|_| ())
             .ok_or_else(|| TaskError::TaskNotFound(id.value()))
-    }
-}
-
-pub fn display_tasks(tasks: &[Task]) {
-    for task in tasks {
-        println!("{task}");
     }
 }
