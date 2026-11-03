@@ -102,6 +102,16 @@ impl Task {
     pub fn description(&self) -> &str {
         &self.description
     }
+
+    #[must_use]
+    pub const fn created(&self) -> DateTime<Local> {
+        self.created_at
+    }
+
+    #[must_use]
+    pub const fn updated(&self) -> DateTime<Local> {
+        self.updated_at
+    }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
